@@ -21,7 +21,8 @@ Praca wykonana przez:
 #define K 3		//maksymalna roznica krokow miedzy zwierzeciem a pasterzem
 
 pthread_mutex_t zamek; 
-pthread_cond_t warunkowa;
+pthread_cond_t owca;
+pthread_cond_t pasterz;
 pthread_t tid[N];
 
 int liczbaKrokowPasterza = 0;
@@ -56,13 +57,13 @@ void * krokZwierzecia(void * arg) {
 		////////////////////////////////////////////////////////////////////////
 		
 		while (tablicaKrokow[wlasnyIndex] - K >= liczbaKrokowPasterza)
-			pthread_cond_wait(&warunkowa, &zamek);
+			pthread_cond_wait(&owca, &zamek);
 			
 		tablicaKrokow[wlasnyIndex] += 1;
 		green(); printf("Owca %d\nLiczba krokow pasterza: %d\nOstatnia owca jest na %d kroku\nMoja liczba krokow: %d\n\n", pthread_self(), liczbaKrokowPasterza, poziomPrzejscZwierzat(), tablicaKrokow[wlasnyIndex]); reset();
 
 		if(liczbaKrokowPasterza < poziomPrzejscZwierzat() + K)
-			pthread_cond_signal(&warunkowa);
+			pthread_cond_signal(&pasterz);
 
 		////////////////////////////////////////////////////////////////////////
 		pthread_mutex_unlock(&zamek);
@@ -77,11 +78,11 @@ void krokPasterza() {
 
 		if (liczbaKrokowPasterza >= poziomPrzejscZwierzat() + K) {
 			yellow(); printf("Pasterz czeka na ostatnia owce\n\n"); reset();
-			pthread_cond_wait(&warunkowa, &zamek);
+			pthread_cond_wait(&pasterz, &zamek);
 		}
 		
 		liczbaKrokowPasterza += 1;
-		pthread_cond_broadcast(&warunkowa);
+		pthread_cond_broadcast(&owca);
 		yellow(); printf("Pasterz robi krok\nLiczba krokow pasterza: %d\nOstatnia owca jest na %d kroku\n\n", liczbaKrokowPasterza, poziomPrzejscZwierzat()); reset();
 
 		////////////////////////////////////////////////////////////////////////
